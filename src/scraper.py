@@ -1,10 +1,11 @@
 #!/usr/bin/python3.8
 
 import os, sys
-from selenium import webdriver
 from bs4 import BeautifulSoup
 import requests 
 import json
+import re
+import datetime
 
 
 class Data:
@@ -37,7 +38,9 @@ class Scrapper:
         news = []
 
         lupa_content = cls.scrap_lupa()
-        return lupa_content
+        g1_content = cls.scrap_g1()
+    
+        return g1_content + lupa_content
 
     @classmethod 
     def scrap_lupa(cls) -> dict:
@@ -67,7 +70,7 @@ class Scrapper:
                 date = date.replace('.', '/').strip()
                 author = child.find('div').find('h4').text.strip()
                 
-                c = Scrapper.build_dict(title, call, img_url, news_url, date, time, author)
+                c = Scrapper.build_dict(title, call, img_url, news_url, date, time, author , 'lupa')
 
                 contents.append(c)
             except Exception as e:
@@ -79,29 +82,63 @@ class Scrapper:
 
         
         return contents
-    
+
+    @classmethod 
+    #TODO try como vai ser feito
+    def scrap_g1(cls) -> list:
+        url = 'https://falkor-cda.bastian.globo.com/tenants/g1/instances/__token__/posts/page/__page__'
+
+        def get_token():                                                                                                                                                                                # capturando o token da página e colocando na url da API
+            url_token = 'https://g1.globo.com/fato-ou-fake/'
+            page = requests.get( url_token , headers = cls.HEADERS ).text
+            pre_token = re.findall ( r'/instances/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' , page )
+            return pre_token[ 0 ].strip('/instances/')
+        
+        def get_json( url_base , i ):
+            url = url_base.replace( '__page__' , str( i ) ) 
+            response_json = requests.get( url , headers = cls.HEADERS ).text 
+            return json.loads( response_json )
+
+        url = url.replace( '__token__' , get_token() )    
+
+        cont_publicacao = 1                                                                                                                                                                             #variavel usada para pular a primeira publicação, parece que api tem problemas
+        contents = list()
+        for i in range( 1 , 6 ):                                                                                                                                                                        #percorre até as últimas 5 páginas, isso para caso falhar coletar somente até as últimas 50 manchetes
+            js = get_json( url , i )
+            for item in js[ 'items']:
+                date_time = datetime.datetime.strptime ( item[ 'publication' ] , "%Y-%m-%dT%H:%M:%S.%fZ")
+                if date_time >= datetime.datetime.now() - datetime.timedelta(days=1) :                                                                                                                  #verifica se a publicação tem mais de um dia
+                    title = item[ "content"][ 'title' ]
+                    call = item[ "content"][ 'summary' ]
+                    img_url = item[ "content"][ 'image']['url']
+                    news_url = item[ "content"][ 'url' ]
+                    date = date_time.strftime("%d/%m/%Y")
+                    time = date_time.strftime("%Hh%M")
+                    author = ''
+                    
+                    c = Scrapper.build_dict(title, call, img_url, news_url, date, time, author , 'g1')
+                    contents.append(c)
+                else:
+                    if cont_publicacao <= 0: return contents                                                                                                                                            #isso contorna o erro da primeira pagina 
+                    else: cont_publicacao -= 1
+        return contents
+
     @staticmethod
     def build_log():
         #TODO
         pass
 
     @staticmethod
-    def build_dict(title, call, img_url, news_url, date, time, author):
+    def build_dict(title, call, img_url, news_url, date, time, author , source):
         return {'title'   : title,
                 'call'    : call,
                 'img_url' : img_url,
                 'news_url': news_url,
                 'date'    : date,
                 'time'    : time,
-                'author'  : author}
+                'author'  : author,
+                'source'  : source}
 
-
-    @classmethod 
-    def scrap_g1(cls):
-        url = ""
-
-        #TODO: Theo
-        pass
 
 
 if __name__ == "__main__":

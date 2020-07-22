@@ -32,11 +32,12 @@ class Maestro:
     def covidometer(self, news):
         covid_descriptors = {'covid, covid-19', 'covid19', 'coronavírus', 
         'coronavirus', 'corona', 'vírus', 'virus', 'oms', 'cloroquina', 'vacina',
-        'pandemia', 'emergencial', 'epidemia', 'hidroxicloroquina', 'saúde', 'saude'}
+        'pandemia', 'emergencial', 'epidemia', 'hidroxicloroquina', 'saúde', 'saude',
+        'quarentena', 'mascara', 'máscara', 'respirador', 'respiradores'}
 
-        title_call = news['title']+ " " +news['call']
-        title_call = set(self.sanitize(title_call).split(' '))
-        return len(title_call.intersection(covid_descriptors)) >= 1
+        text = news['title']+ " " +news['description']
+        text = set(self.sanitize(text).split(' '))
+        return len(text.intersection(covid_descriptors)) >= 1
 
 
     def sanitize(self, text:str) -> str:

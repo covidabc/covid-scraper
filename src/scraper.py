@@ -22,33 +22,33 @@ class Scrapper:
         """input: (nothing)
         output: list of dictionaries that map basic news attributes to their content.
         The attributes are:
-        title, call, img_url, news_url, date, time, author, source
+        title, description, img_url, news_url, date, time, author, source
         """ 
 
         logging.info("Starting Lupa scraping-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
         lupa_content = cls.scrap_lupa()
 
         logging.info("Starting g1 scraping-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-        #  g1_content = cls.scrap_g1()
+        g1_content = cls.scrap_g1()
     
-        #  return g1_content + lupa_content
-        return lupa_content
+        return g1_content + lupa_content
+        #  return lupa_content
 
     @classmethod 
     def scrap_lupa(cls) -> dict:
         url = "https://piaui.folha.uol.com.br/lupa/"
-        #  contents = requests.get(url, headers=cls.HEADERS).text
+        contents = requests.get(url, headers=cls.HEADERS).text
 
         # only for debug purposes
         #  open("./test.html", 'w').writelines(contents)
-        contents = open("./test.html").read()
+        #  contents = open("./test.html").read()
 
         soup = BeautifulSoup(contents, features='lxml')
         contents = []
         s = soup.find("div", {'class' : 'lista-noticias'})
 
         for child in s.findChildren('div'):
-            img_url, title, call, news_url = (None, None, None, None)
+            img_url, title, description, news_url = (None, None, None, None)
             
             if child.has_attr("class") and (child['class'][0] == "inner" or
                                             child['class'][0] == 'bloco-meta' or
@@ -57,14 +57,14 @@ class Scrapper:
 
             try:
                 title = child.find('div').find('h2').find('a')['title'].strip()
-                call = child.find('div').find('h3').find('a').contents[0].strip()
+                description = child.find('div').find('h3').find('a').contents[0].strip()
                 img_url = child.find('a')['style'][23:-2].strip()
                 news_url = child.find('div').find('h3').find('a')['href'].strip()
                 date,time = list(map(str.strip, child.find('div').find('div').text.split("|")))[:-1]
                 date = date.replace('.', '/').strip()
                 author = child.find('div').find('h4').text.strip()
                 
-                c = Scrapper.build_dict(title, call, img_url, news_url, date, time, author , 'lupa')
+                c = Scrapper.build_dict(title, description, img_url, news_url, date, time, author , 'lupa')
 
                 contents.append(c)
             except Exception as e:
@@ -80,7 +80,7 @@ class Scrapper:
         def get_token():                                                                                                                                                                                # capturando o token da página e colocando na url da API
             url_token = 'https://g1.globo.com/fato-ou-fake/'
             page = requests.get( url_token , headers = cls.HEADERS ).text
-            pre_token = re.findall ( r'/instances/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' , page )
+            pre_token = re.findall( r'/instances/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' , page )
             return pre_token[ 0 ].strip('/instances/')
         
         def get_json( url_base , i ):
@@ -98,14 +98,14 @@ class Scrapper:
                 date_time = datetime.datetime.strptime ( item[ 'publication' ] , "%Y-%m-%dT%H:%M:%S.%fZ")
                 if date_time >= datetime.datetime.now() - datetime.timedelta(days=1) :                                                                                                                  #verifica se a publicação tem mais de um dia
                     title = item[ "content"][ 'title' ]
-                    call = item[ "content"][ 'summary' ]
+                    description = item[ "content"][ 'summary' ]
                     img_url = item[ "content"][ 'image']['url']
                     news_url = item[ "content"][ 'url' ]
                     date = date_time.strftime("%d/%m/%Y")
                     time = date_time.strftime("%Hh%M")
                     author = ''
                     
-                    c = Scrapper.build_dict(title, call, img_url, news_url, date, time, author , 'g1')
+                    c = Scrapper.build_dict(title, description, img_url, news_url, date, time, author , 'g1')
                     contents.append(c)
                 else:
                     if cont_publicacao <= 0: return contents                                                                                                                                            #isso contorna o erro da primeira pagina 
@@ -119,15 +119,15 @@ class Scrapper:
         
 
     @staticmethod
-    def build_dict(title, call, img_url, news_url, date, time, author , source):
-        return {'title'   : title,
-                'call'    : call,
-                'img_url' : img_url,
-                'news_url': news_url,
-                'date'    : date,
-                'time'    : time,
-                'author'  : author,
-                'source'  : source}
+    def build_dict(title, description, img_url, news_url, date, time, author , source):
+        return {'title'      : title,
+                'description': description,
+                'imgageURL'  : img_url,
+                'newsURL'    : news_url,
+                'date'       : date,
+                'time'       : time,
+                'author'     : author,
+                'source'     : source}
 
 
 

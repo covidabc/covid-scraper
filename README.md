@@ -8,14 +8,14 @@ json file with all of its data (array of objects), witch includes:
 ```
  [
     {
-        "title"   : string,
-        "call"    : string,
-        "img_url" : string,
-        "news_url": string,
-        "date"    : string,
-        "time"    : string,
-        "author"  : string,
-        "source"  : string
+        "title"        : string,
+        "description"  : string,
+        "imgageURL"    : string,
+        "newsURL"      : string,
+        "date"         : string,
+        "time"         : string,
+        "author"       : string,
+        "source"       : string
     },
 ]
 ```

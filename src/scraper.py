@@ -1,46 +1,29 @@
 #!/usr/bin/python3.8
 
-import os, sys
+import os, sys, requests, json, re, datetime, logging
 from bs4 import BeautifulSoup
-import requests 
-import json
-import re
-import datetime
-
-
-class Data:
-    def __init__(self, name, url, content):
-        self.name = name
-        self.url  = url
-        self.content = content
-
-class News:
-    def __init__(self, img_url, title, call, news_url):
-        self.img_url = img_url
-        self.title = title
-        self.call = call
-        self.news_url = news_url
-
-    def __str__(self):
-        return f"Title: {self.title}\n"
-        #  return f"Title: {self.title}\nChamada: {self.call}\nUrl notícia: {self.news_url}\nUrl imagem: {self.img_url}"
-
 
 class Scrapper:
     HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36",
                 "Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
                  }
 
-    LOG_FILE = "./errors.log"
-    
+    LOG_FILE = "./covid-scraper-" + datetime.datetime.now() .strftime("%d-%m-%y-%H:%M:%S") + ".log"
+    logging.basicConfig(filename=LOG_FILE, filemode='w', level=logging.DEBUG)
+
+
     @classmethod
     def scrap(cls) -> str:
         news = []
-
+        
+        logging.info("Starting Lupa scraping -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
         lupa_content = cls.scrap_lupa()
+
+        logging.info("Starting g1 scraping-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
         g1_content = cls.scrap_g1()
     
         return g1_content + lupa_content
+        #  return lupa_content
 
     @classmethod 
     def scrap_lupa(cls) -> dict:
@@ -48,18 +31,20 @@ class Scrapper:
         contents = requests.get(url, headers=cls.HEADERS).text
 
         # only for debug purposes
-        #  contents = open("./testes/test.html").read()
+        #  open("./test.html", 'w').writelines(contents)
+        #  contents = open("./test.html").read()
 
         soup = BeautifulSoup(contents, features='lxml')
         contents = []
-        s = soup.find("div", {'class' : 'internaPGN'})
+        s = soup.find("div", {'class' : 'lista-noticias'})
 
         for child in s.findChildren('div'):
             img_url, title, call, news_url = (None, None, None, None)
-
-            if child.has_attr("class") and (child['class'][0] == "inner" or child['class'][0] == 'bloco-meta'):
+            
+            if child.has_attr("class") and (child['class'][0] == "inner" or
+                                            child['class'][0] == 'bloco-meta' or
+                                            child['class'][0] == 'internaPGN'):
                 continue
-
 
             try:
                 title = child.find('div').find('h2').find('a')['title'].strip()
@@ -74,17 +59,12 @@ class Scrapper:
 
                 contents.append(c)
             except Exception as e:
-                #TODO: using an dedicated method for logging
-                print("------------------------------------------------------")
-                print(e)
-                print(child)
-                print("------------------------------------------------------\n\n\n\n")
-
-        
+                Scrapper.build_log(e, "lupa")
+            
         return contents
 
+
     @classmethod 
-    #TODO try como vai ser feito
     def scrap_g1(cls) -> list:
         url = 'https://falkor-cda.bastian.globo.com/tenants/g1/instances/__token__/posts/page/__page__'
 
@@ -123,10 +103,11 @@ class Scrapper:
                     else: cont_publicacao -= 1
         return contents
 
+
     @staticmethod
-    def build_log():
-        #TODO
-        pass
+    def build_log(e:Exception, w:str):
+        logging.error(f"Something went wrong wgile running {w} function:\n\t{e}")
+        
 
     @staticmethod
     def build_dict(title, call, img_url, news_url, date, time, author , source):

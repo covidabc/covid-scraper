@@ -8,7 +8,6 @@ class Maestro:
 
 
     def get_data(self):
-        #  for web_content in Scrapper.scrap():
         self.__save_data(Scrapper.scrap())
 
 
@@ -18,8 +17,6 @@ class Maestro:
             data = json.dumps(data, indent="    ", ensure_ascii=False)
             print(data)
             f2.writelines(data)
-
-
 
 
 if __name__ == "__main__":

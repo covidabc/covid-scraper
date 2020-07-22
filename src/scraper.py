@@ -4,6 +4,11 @@ import os, sys, requests, json, re, datetime, logging
 from bs4 import BeautifulSoup
 
 class Scrapper:
+    """
+    class who holds all methods for scraping websites intended to collect
+    data against fake-news       
+    """
+
     HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36",
                 "Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
                  }
@@ -13,9 +18,13 @@ class Scrapper:
 
 
     @classmethod
-    def scrap(cls) -> str:
-        news = []
-        
+    def scrap(cls) -> list:
+        """input: (nothing)
+        output: list of dictionaries that map basic news attributes to their content.
+             The attributes are:
+                  title, call, img_url, news_url, date, time, author, source
+        """ 
+
         logging.info("Starting Lupa scraping -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
         lupa_content = cls.scrap_lupa()
 
@@ -122,5 +131,6 @@ class Scrapper:
 
 
 
+# Debug driver
 if __name__ == "__main__":
     print(json.dumps(Scrapper.scrap(), indent="    ", ensure_ascii=False))

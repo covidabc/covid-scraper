@@ -13,7 +13,7 @@ class Scrapper:
                 "Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
                  }
 
-    LOG_FILE = "./covid-scraper-" + datetime.datetime.now() .strftime("%d-%m-%y-%H:%M:%S") + ".log"
+    LOG_FILE = "./log/covid-scraper-" + datetime.datetime.now() .strftime("%d-%m-%y-%H:%M:%S") + ".log"
     logging.basicConfig(filename=LOG_FILE, filemode='w', level=logging.DEBUG)
 
 
@@ -21,27 +21,27 @@ class Scrapper:
     def scrap(cls) -> list:
         """input: (nothing)
         output: list of dictionaries that map basic news attributes to their content.
-             The attributes are:
-                  title, call, img_url, news_url, date, time, author, source
+        The attributes are:
+        title, call, img_url, news_url, date, time, author, source
         """ 
 
-        logging.info("Starting Lupa scraping -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+        logging.info("Starting Lupa scraping-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
         lupa_content = cls.scrap_lupa()
 
         logging.info("Starting g1 scraping-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
-        g1_content = cls.scrap_g1()
+        #  g1_content = cls.scrap_g1()
     
-        return g1_content + lupa_content
-        #  return lupa_content
+        #  return g1_content + lupa_content
+        return lupa_content
 
     @classmethod 
     def scrap_lupa(cls) -> dict:
         url = "https://piaui.folha.uol.com.br/lupa/"
-        contents = requests.get(url, headers=cls.HEADERS).text
+        #  contents = requests.get(url, headers=cls.HEADERS).text
 
         # only for debug purposes
         #  open("./test.html", 'w').writelines(contents)
-        #  contents = open("./test.html").read()
+        contents = open("./test.html").read()
 
         soup = BeautifulSoup(contents, features='lxml')
         contents = []

@@ -31,9 +31,9 @@ class Scrapper:
 
         logging.info("Starting g1 scraping-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
         g1_content = cls.scrap_g1()
-    
+
         return g1_content + lupa_content
-        #  return lupa_content
+
 
     @classmethod 
     def scrap_lupa(cls) -> dict:

@@ -1,5 +1,5 @@
 #!/usr/bin/python3.8
-import os, sys, json, string, random, datetime
+import os, sys, json, string, random, datetime, hashlib
 from scraper import Scrapper
 from firebase_admin import initialize_app, credentials, firestore
 
@@ -39,11 +39,11 @@ class Maestro:
         'quarentena', 'mascara', 'máscara', 'respirador', 'respiradores'}
 
         text = news['title']+ " " +news['description']
-        text = set(self.sanitize(text).split(' '))
+        text = set(self.__sanitize(text).split(' '))
         return len(text.intersection(covid_descriptors)) >= 1
 
 
-    def sanitize(self, text:str) -> str:
+    def __sanitize(self, text:str) -> str:
         table = str.maketrans('', '', string.punctuation+'‘’')
         text = text.strip().lower().translate(table)
         return text
@@ -58,15 +58,15 @@ class Maestro:
         db = firestore.client()
        
         for data in data_list:
-            doc_ref = db.collection(u'news').document(self.__generate_hash())
+            doc_ref = db.collection(u'news-test').document(self.__generate_hash(data['title'], data['date'], data['time']))
             doc_ref.set(data)
 
 
-    def __generate_hash(self):
-        today_date = datetime.datetime.now().strftime("%d-%m-%y-%H:%M:%S")
-        rand_val = str(random.randint(1, 100000))
+    def __generate_hash(self, title:str, date:str, time:str):
+        val = (title+date+time).encode()
+        return hashlib.md5(val).hexdigest() 
 
-        return today_date + rand_val
+
 
 if __name__ == "__main__":
     if len(sys.argv) <= 1:

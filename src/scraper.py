@@ -33,6 +33,7 @@ class Scrapper:
         g1_content = cls.scrap_g1()
 
         return g1_content + lupa_content
+        #  return lupa_content
 
 
     @classmethod 
@@ -50,27 +51,31 @@ class Scrapper:
 
         for child in s.findChildren('div'):
             img_url, title, description, news_url = (None, None, None, None)
-            
+
             if child.has_attr("class") and (child['class'][0] == "inner" or
                                             child['class'][0] == 'bloco-meta' or
                                             child['class'][0] == 'internaPGN'):
                 continue
 
             try:
-                title = child.find('div').find('h2').find('a')['title'].strip()
-                description = child.find('div').find('h3').find('a').contents[0].strip()
-                img_url = child.find('a')['style'][23:-2].strip()
-                news_url = child.find('div').find('h3').find('a')['href'].strip()
                 date,time = list(map(str.strip, child.find('div').find('div').text.split("|")))[:-1]
                 date = date.replace('.', '/').strip()
-                author = child.find('div').find('h4').text.strip()
-                
-                c = Scrapper.build_dict(title, description, img_url, news_url, date, time, author , 'lupa')
+                date = datetime.datetime.strptime(date, "%d/%m/%Y")
 
-                contents.append(c)
+                if date >= datetime.datetime.now() - datetime.timedelta(days=1) :                                                                                                                  #verifica se a publicação tem mais de um dia
+                    title = child.find('div').find('h2').find('a')['title'].strip()
+                    description = child.find('div').find('h3').find('a').contents[0].strip()
+                    img_url = child.find('a')['style'][23:-2].strip()
+                    news_url = child.find('div').find('h3').find('a')['href'].strip()
+                    author = child.find('div').find('h4').text.strip()
+                    date = date.strftime("%d/%m/%Y")
+
+                    c = Scrapper.build_dict(title, description, img_url, news_url, date, time, author , 'lupa')
+
+                    contents.append(c)
             except Exception as e:
                 Scrapper.build_log(e, "Agência Lupa")
-            
+
         return contents
 
 
@@ -83,29 +88,29 @@ class Scrapper:
             page = requests.get( url_token , headers = cls.HEADERS ).text
             pre_token = re.findall( r'/instances/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' , page )
             return pre_token[ 0 ].strip('/instances/')
-        
+
         def get_json( url_base , i ):
             url = url_base.replace( '__page__' , str( i ) ) 
             response_json = requests.get( url , headers = cls.HEADERS ).text 
             return json.loads( response_json )
 
-        url = url.replace( '__token__' , get_token() )    
+        url = url.replace( '__token__' , get_token() )
 
         cont_publicacao = 1                                                                                                                                                                             #variavel usada para pular a primeira publicação, parece que api tem problemas
         contents = list()
         for i in range( 1 , 6 ):                                                                                                                                                                        #percorre até as últimas 5 páginas, isso para caso falhar coletar somente até as últimas 50 manchetes
             js = get_json( url , i )
-            for item in js[ 'items']:
+            for item in js['items']:
                 date_time = datetime.datetime.strptime ( item[ 'publication' ] , "%Y-%m-%dT%H:%M:%S.%fZ")
                 if date_time >= datetime.datetime.now() - datetime.timedelta(days=1) :                                                                                                                  #verifica se a publicação tem mais de um dia
-                    title = item[ "content"][ 'title' ]
-                    description = item[ "content"][ 'summary' ]
-                    img_url = item[ "content"][ 'image']['url']
-                    news_url = item[ "content"][ 'url' ]
+                    title = item["content"]['title']
+                    description = item["content"]['summary']
+                    img_url = item["content"]['image']['url']
+                    news_url = item["content"]['url']
                     date = date_time.strftime("%d/%m/%Y")
                     time = date_time.strftime("%Hh%M")
                     author = ''
-                    
+
                     c = Scrapper.build_dict(title, description, img_url, news_url, date, time, author , 'g1')
                     contents.append(c)
                 else:
@@ -117,13 +122,13 @@ class Scrapper:
     @staticmethod
     def build_log(e:Exception, w:str):
         logging.error(f"Something went wrong wgile running {w} function:\n\t{e}")
-        
+
 
     @staticmethod
     def build_dict(title, description, img_url, news_url, date, time, author , source):
         return {'title'      : title,
                 'description': description,
-                'imageURL'  : img_url,
+                'imageURL'   : img_url,
                 'newsURL'    : news_url,
                 'date'       : date,
                 'time'       : time,

@@ -14,6 +14,7 @@ class Scrapper:
                  }
 
     LOG_FILE = "./log/covid-scraper-" + datetime.datetime.now() .strftime("%d-%m-%y-%H:%M:%S") + ".log"
+    os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
     logging.basicConfig(filename=LOG_FILE, filemode='w', level=logging.DEBUG)
 
 
@@ -22,7 +23,7 @@ class Scrapper:
         """input: (nothing)
         output: list of dictionaries that map basic news attributes to their content.
         The attributes are:
-        title, description, img_url, news_url, date, time, author, source
+        title, description, imageURL, newsURL, date, time, author, source
         """ 
 
         logging.info("Starting Lupa scraping-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
@@ -68,7 +69,7 @@ class Scrapper:
 
                 contents.append(c)
             except Exception as e:
-                Scrapper.build_log(e, "lupa")
+                Scrapper.build_log(e, "Agência Lupa")
             
         return contents
 
@@ -122,7 +123,7 @@ class Scrapper:
     def build_dict(title, description, img_url, news_url, date, time, author , source):
         return {'title'      : title,
                 'description': description,
-                'imgageURL'  : img_url,
+                'imageURL'  : img_url,
                 'newsURL'    : news_url,
                 'date'       : date,
                 'time'       : time,

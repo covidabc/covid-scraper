@@ -10,7 +10,7 @@ json file with all of its data (array of objects), witch includes:
     {
         "title"        : string,
         "description"  : string,
-        "imgageURL"    : string,
+        "imageURL"    : string,
         "newsURL"      : string,
         "date"         : string,
         "time"         : string,

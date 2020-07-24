@@ -1,6 +1,8 @@
 #!/usr/bin/python3.8
-import os, sys, json, string
+import os, sys, json, string, random, datetime
 from scraper import Scrapper
+from firebase_admin import initialize_app, credentials, firestore
+
 HELP = \
 """`Maestro` is a program that collects news information from the `Agencia
 lupa` and` g1` websites related to fake news about COVID-19. To run the program
@@ -19,6 +21,7 @@ class Maestro:
     def get_data(self):
         covid_news = list(filter(self.covidometer, Scrapper.scrap()))
         self.__save_data(covid_news)
+        self.__save_to_firebase(covid_news)
 
 
     def __save_data(self, data):
@@ -45,9 +48,26 @@ class Maestro:
         text = text.strip().lower().translate(table)
         return text
 
+    def __save_to_firebase(self, data_list) :
+        cred = credentials.Certificate('./serviceAccountKey.json')
+
+        initialize_app(cred, {
+            'databaseURL' : 'https://covid-fake-news.firebaseio.com'
+        })
+
+        db = firestore.client()
+       
+        for data in data_list:
+            doc_ref = db.collection(u'news').document(self.__generate_hash())
+            doc_ref.set(data)
 
 
-        
+    def __generate_hash(self):
+        today_date = datetime.datetime.now().strftime("%d-%m-%y-%H:%M:%S")
+        rand_val = str(random.randint(1, 100000))
+
+        return today_date + rand_val
+
 if __name__ == "__main__":
     if len(sys.argv) <= 1:
         print("At least one positional argument needed.\n\t-h, --help: For help")

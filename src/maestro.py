@@ -27,7 +27,8 @@ class Maestro:
     def __save_data(self, data):
         name = "covid-news"
         with open(self.out_folder+'/'+ name + '.json', 'w') as f2:
-            data = json.dumps(data, indent="    ", ensure_ascii=False)
+            default = lambda o: f"<<non-serializable: {type(o).__qualname__}>>"
+            data = json.dumps(data, indent="    ", ensure_ascii=False, default = default)
             print(data)
             f2.writelines(data)
 
@@ -58,12 +59,12 @@ class Maestro:
         db = firestore.client()
        
         for data in data_list:
-            doc_ref = db.collection(u'news').document(self.__generate_hash(data['title'], data['date'], data['time']))
+            doc_ref = db.collection(u'news').document(self.__generate_hash(data['title'], data['dateStr'], data['timeStr']))
             doc_ref.set(data)
 
 
     def __generate_hash(self, title:str, date:str, time:str):
-        val = (title+date+time).encode()
+        val = (title + date + time).encode()
         return hashlib.md5(val).hexdigest() 
 
 

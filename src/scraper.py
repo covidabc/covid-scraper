@@ -33,7 +33,6 @@ class Scrapper:
         g1_content = cls.scrap_g1()
 
         return g1_content + lupa_content
-        #  return lupa_content
 
 
     @classmethod 
@@ -58,19 +57,18 @@ class Scrapper:
                 continue
 
             try:
-                date,time = list(map(str.strip, child.find('div').find('div').text.split("|")))[:-1]
-                date = date.replace('.', '/').strip()
-                date = datetime.datetime.strptime(date, "%d/%m/%Y")
+                date_str, time_str = list(map(str.strip, child.find('div').find('div').text.split("|")))[:-1]
+                date_str = date_str.replace('.', '/').strip()
+                date = datetime.datetime.strptime(date_str, "%d/%m/%Y")
 
                 if date >= datetime.datetime.now() - datetime.timedelta(days=1) :                                                                                                                  #verifica se a publicação tem mais de um dia
                     title = child.find('div').find('h2').find('a')['title'].strip()
                     description = child.find('div').find('h3').find('a').contents[0].strip()
                     img_url = child.find('a')['style'][23:-2].strip()
                     news_url = child.find('div').find('h3').find('a')['href'].strip()
-                    author = child.find('div').find('h4').text.strip()
-                    date = date.strftime("%d/%m/%Y")
-
-                    c = Scrapper.build_dict(title, description, img_url, news_url, date, time, author , 'lupa')
+                    author = child.find('div').find('h4').text.strip()                  
+         
+                    c = Scrapper.build_dict(title, description, img_url, news_url, date_str, time_str, date, author , 'lupa')
 
                     contents.append(c)
             except Exception as e:
@@ -107,11 +105,12 @@ class Scrapper:
                     description = item["content"]['summary']
                     img_url = item["content"]['image']['url']
                     news_url = item["content"]['url']
-                    date = date_time.strftime("%d/%m/%Y")
-                    time = date_time.strftime("%Hh%M")
+                    date_str = date_time.strftime("%d/%m/%Y")
+                    time_str = date_time.strftime("%Hh%M")
+                    date = datetime.datetime.strptime(date_str, "%d/%m/%Y")
                     author = ''
 
-                    c = Scrapper.build_dict(title, description, img_url, news_url, date, time, author , 'g1')
+                    c = Scrapper.build_dict(title, description, img_url, news_url, date_str, time_str, date, author , 'g1')
                     contents.append(c)
                 else:
                     if cont_publicacao <= 0: return contents                                                                                                                                            #isso contorna o erro da primeira pagina 
@@ -125,15 +124,16 @@ class Scrapper:
 
 
     @staticmethod
-    def build_dict(title, description, img_url, news_url, date, time, author , source):
-        return {'title'      : title,
-                'description': description,
-                'imageURL'   : img_url,
-                'newsURL'    : news_url,
-                'date'       : date,
-                'time'       : time,
-                'author'     : author,
-                'source'     : source}
+    def build_dict(title, description, img_url, news_url, date_str, time_str, date, author, source):
+        return {'title'         : title,
+                'description'   : description,
+                'imageURL'      : img_url,
+                'newsURL'       : news_url,
+                'dateStr'       : date_str,
+                'timeStr'       : time_str,
+                'date'          : date,
+                'author'        : author,
+                'source'        : source}
 
 
 

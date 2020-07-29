@@ -91,7 +91,7 @@ class Scrapper:
             url = url_base.replace( '__page__' , str( i ) ) 
             response_json = requests.get( url , headers = cls.HEADERS ).text 
             return json.loads( response_json )
-
+        
         url = url.replace( '__token__' , get_token() )
 
         cont_publicacao = 1                                                                                                                                                                             #variavel usada para pular a primeira publicação, parece que api tem problemas
@@ -103,7 +103,7 @@ class Scrapper:
                 if date_time >= datetime.datetime.now() - datetime.timedelta(days=1) :                                                                                                                  #verifica se a publicação tem mais de um dia
                     title = item["content"]['title']
                     description = item["content"]['summary']
-                    img_url = item["content"]['image']['url']
+                    img_url = item["content"]['image']['sizes']['L']['url']
                     news_url = item["content"]['url']
                     date_str = date_time.strftime("%d/%m/%Y")
                     time_str = date_time.strftime("%Hh%M")

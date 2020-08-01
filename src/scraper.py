@@ -103,7 +103,7 @@ class Scrapper:
                 if date_time >= datetime.datetime.now() - datetime.timedelta(days=3) :                                                                                                                  #verifica se a publicação tem mais de um dia
                     title = item["content"]['title']
                     description = item["content"]['summary']
-                    img_url = item["content"]['image']['url']
+                    img_url = item["content"]['image']['sizes']['L']['url']
                     news_url = item["content"]['url']
                     date_str = date_time.strftime("%d/%m/%Y")
                     time_str = date_time.strftime("%Hh%M")

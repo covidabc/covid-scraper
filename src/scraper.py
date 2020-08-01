@@ -60,8 +60,8 @@ class Scrapper:
                 date_str, time_str = list(map(str.strip, child.find('div').find('div').text.split("|")))[:-1]
                 date_str = date_str.replace('.', '/').strip()
                 date = datetime.datetime.strptime(date_str, "%d/%m/%Y")
-
-                if date >= datetime.datetime.now() - datetime.timedelta(days=1) :                                                                                                                  #verifica se a publicação tem mais de um dia
+        
+                if date >= datetime.datetime.now() - datetime.timedelta(days=3) :                                                                                                                  #verifica se a publicação tem mais de um dia
                     title = child.find('div').find('h2').find('a')['title'].strip()
                     description = child.find('div').find('h3').find('a').contents[0].strip()
                     img_url = child.find('a')['style'][23:-2].strip()
@@ -91,7 +91,7 @@ class Scrapper:
             url = url_base.replace( '__page__' , str( i ) ) 
             response_json = requests.get( url , headers = cls.HEADERS ).text 
             return json.loads( response_json )
-        
+
         url = url.replace( '__token__' , get_token() )
 
         cont_publicacao = 1                                                                                                                                                                             #variavel usada para pular a primeira publicação, parece que api tem problemas
@@ -100,10 +100,10 @@ class Scrapper:
             js = get_json( url , i )
             for item in js['items']:
                 date_time = datetime.datetime.strptime ( item[ 'publication' ] , "%Y-%m-%dT%H:%M:%S.%fZ")
-                if date_time >= datetime.datetime.now() - datetime.timedelta(days=1) :                                                                                                                  #verifica se a publicação tem mais de um dia
+                if date_time >= datetime.datetime.now() - datetime.timedelta(days=3) :                                                                                                                  #verifica se a publicação tem mais de um dia
                     title = item["content"]['title']
                     description = item["content"]['summary']
-                    img_url = item["content"]['image']['sizes']['L']['url']
+                    img_url = item["content"]['image']['url']
                     news_url = item["content"]['url']
                     date_str = date_time.strftime("%d/%m/%Y")
                     time_str = date_time.strftime("%Hh%M")

@@ -53,7 +53,7 @@ class Maestro:
         cred = credentials.Certificate('./serviceAccountKey.json')
 
         initialize_app(cred, {
-            'databaseURL' : 'https://covid-fake-news.firebaseio.com'
+            'databaseURL' : 'https://covid-abc-d3e7b.firebaseio.com'
         })
 
         db = firestore.client()

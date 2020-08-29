@@ -59,7 +59,7 @@ class Maestro:
         db = firestore.client()
        
         for data in data_list:
-            doc_ref = db.collection(u'news').document(self.__generate_hash(data['title'], data['dateStr'], data['timeStr']))
+            doc_ref = db.collection(u'news-teste').document(self.__generate_hash(data['title'], data['dateStr'], data['timeStr']))
             doc_ref.set(data)
 
 

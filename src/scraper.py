@@ -32,7 +32,10 @@ class Scrapper:
         logging.info("Starting g1 scraping-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
         g1_content = cls.scrap_g1()
 
-        return g1_content + lupa_content
+        logging.info("Starting bbc scraping-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+        bbc_content = cls.scrap_bbc()
+
+        return g1_content + lupa_content + bbc_content
 
 
     @classmethod 
@@ -117,6 +120,46 @@ class Scrapper:
                     else: cont_publicacao -= 1
         return contents
 
+    @classmethod
+    def scrap_bbc(cls) -> dict:
+
+        url = 'https://www.bbc.com/portuguese/topics/c95y354381pt'
+        contents = requests.get(url, headers=cls.HEADERS).text
+        soup = BeautifulSoup(contents, features='lxml')
+        #soup = BeautifulSoup(contents, 'html.parser')
+        contents = []
+
+        s = soup.find("ol", {'class': 'gs-u-m0 gs-u-p0 lx-stream__feed qa-stream'})
+
+        try:
+            for child in s.findChildren('li', {
+                'class': 'lx-stream__post-container placeholder-animation-finished'}):  # class é importante pois há outros li sem relação
+
+                date1 = child.find(class_='qa-post-auto-meta').text.strip()
+                date2 = Scrapper.monthInNumber(date1)
+                date2 = date2.replace(' ', '/').replace('/', ' ', 1)
+                date_time = datetime.datetime.strptime(date2, "%H:%M %d/%m/%Y")
+                if date_time >= datetime.datetime.now() - datetime.timedelta(days=3):
+                    title = child.find(class_='lx-stream-post__header-text gs-u-align-middle').text.strip()
+                    description = child.find(class_='lx-stream-related-story--summary qa-story-summary').text.strip()
+                    img_url = child.find(class_='qa-srcset-image lx-stream-related-story--index-image qa-story-image')[
+                        'src'].strip()
+                    news_url = 'https://bbc.com' + child.find(class_='qa-heading-link lx-stream-post__header-link')[
+                        'href'].strip()
+                    date_str = date_time.strftime("%d/%m/%Y")
+                    time_str = date_time.strftime("%Hh%M")
+                    date = datetime.datetime.strptime(date_str, "%d/%m/%Y")
+                    try:
+                        author = child.find(
+                            class_='qa-contributor-name lx-stream-post__contributor-name gel-long-primer gs-u-m0').text.strip()
+                    except:
+                        author = '-' #algumas notícias não possuem autor
+                    c = Scrapper.build_dict(title, description, img_url, news_url, date_str, time_str, date, author, 'bbc')
+                    contents.append(c)
+            return contents
+        except Exception as e:
+            Scrapper.build_log(e, "BBC")
+
 
     @staticmethod
     def build_log(e:Exception, w:str):
@@ -135,7 +178,38 @@ class Scrapper:
                 'author'        : author,
                 'source'        : source}
 
-
+    @classmethod
+    def monthInNumber(datas):
+        datas = datas.split(' ')
+        if (datas[2].lower() == 'janeiro'):
+            datas[2] = '01'
+        elif (datas[2].lower() == 'fevereiro'):
+            datas[2] = '02'
+        elif (datas[2].lower() == 'março'):
+            datas[2] = '03'
+        elif (datas[2].lower() == 'abril'):
+            datas[2] = '04'
+        elif (datas[2].lower() == 'maio'):
+            datas[2] = '05'
+        elif (datas[2].lower() == 'junho'):
+            datas[2] = '06'
+        elif (datas[2].lower() == 'julho'):
+            datas[2] = '07'
+        elif (datas[2].lower() == 'agosto'):
+            datas[2] = '08'
+        elif (datas[2].lower() == 'setembro'):
+            datas[2] = '09'
+        elif (datas[2].lower() == 'outubro'):
+            datas[2] = '10'
+        elif (datas[2].lower() == 'novembro'):
+            datas[2] = '11'
+        elif (datas[2].lower() == 'dezembro'):
+            datas[2] = '12'
+        x = ''
+        for y in datas:
+            x = x + ' ' + y
+        return x.strip()
+        
 
 # Debug driver
 if __name__ == "__main__":

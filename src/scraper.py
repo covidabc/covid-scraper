@@ -126,14 +126,13 @@ class Scrapper:
         url = 'https://www.bbc.com/portuguese/topics/c95y354381pt'
         contents = requests.get(url, headers=cls.HEADERS).text
         soup = BeautifulSoup(contents, features='lxml')
-        #soup = BeautifulSoup(contents, 'html.parser')
         contents = []
 
         s = soup.find("ol", {'class': 'gs-u-m0 gs-u-p0 lx-stream__feed qa-stream'})
 
-        try:
-            for child in s.findChildren('li', {
-                'class': 'lx-stream__post-container placeholder-animation-finished'}):  # class é importante pois há outros li sem relação
+        for child in s.findChildren('li', {'class': 'lx-stream__post-container placeholder-animation-finished'}):  # class é importante pois há outros li sem relação
+            img_url, title, description, news_url = (None, None, None, None)
+            try:
 
                 date1 = child.find(class_='qa-post-auto-meta').text.strip()
                 date2 = Scrapper.monthInNumber(date1)
@@ -156,9 +155,10 @@ class Scrapper:
                         author = '-' #algumas notícias não possuem autor
                     c = Scrapper.build_dict(title, description, img_url, news_url, date_str, time_str, date, author, 'bbc')
                     contents.append(c)
-            return contents
-        except Exception as e:
+            except Exception as e:
             Scrapper.build_log(e, "BBC")
+        return contents
+        
 
 
     @staticmethod

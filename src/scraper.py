@@ -103,7 +103,7 @@ class Scrapper:
             js = get_json( url , i )
             for item in js['items']:
                 date_time = datetime.datetime.strptime ( item[ 'publication' ] , "%Y-%m-%dT%H:%M:%S.%fZ")
-                if date_time >= datetime.datetime.now() - datetime.timedelta(days=3) :                                                                                                                  #verifica se a publicação tem mais de um dia
+                if date_time >= datetime.datetime.now() - datetime.timedelta(days=10) :                                                                                                                  #verifica se a publicação tem mais de um dia
                     title = item["content"]['title']
                     description = item["content"]['summary']
                     img_url = item["content"]['image']['sizes']['L']['url']
@@ -138,7 +138,7 @@ class Scrapper:
                 date2 = Scrapper.monthInNumber(date1)
                 date2 = date2.replace(' ', '/').replace('/', ' ', 1)
                 date_time = datetime.datetime.strptime(date2, "%H:%M %d/%m/%Y")
-                if date_time >= datetime.datetime.now() - datetime.timedelta(days=3):
+                if date_time >= datetime.datetime.now() - datetime.timedelta(days=40):
                     title = child.find(class_='lx-stream-post__header-text gs-u-align-middle').text.strip()
                     description = child.find(class_='lx-stream-related-story--summary qa-story-summary').text.strip()
                     img_url = child.find(class_='qa-srcset-image lx-stream-related-story--index-image qa-story-image')[
@@ -153,10 +153,10 @@ class Scrapper:
                             class_='qa-contributor-name lx-stream-post__contributor-name gel-long-primer gs-u-m0').text.strip()
                     except:
                         author = '-' #algumas notícias não possuem autor
-                    c = Scrapper.build_dict(title, description, img_url, news_url, date_str, time_str, date, author, 'bbc')
+                    c = Scrapper.build_dict(title, description, img_url, news_url, date_str, time_str, date, author, 'BBC')
                     contents.append(c)
             except Exception as e:
-            Scrapper.build_log(e, "BBC")
+                Scrapper.build_log(e, "BBC")
         return contents
         
 
@@ -178,7 +178,7 @@ class Scrapper:
                 'author'        : author,
                 'source'        : source}
 
-    @classmethod
+    @staticmethod
     def monthInNumber(datas):
         datas = datas.split(' ')
         if (datas[2].lower() == 'janeiro'):

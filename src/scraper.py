@@ -35,7 +35,10 @@ class Scrapper:
         logging.info("Starting bbc scraping-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
         bbc_content = cls.scrap_bbc()
 
-        return g1_content + lupa_content + bbc_content
+        logging.info("Starting sanarmed scraping-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
+        sanarmed_content = cls.scrap_sanarmed()
+
+        return g1_content + lupa_content + bbc_content + sanarmed_content
 
 
     @classmethod 
@@ -103,7 +106,7 @@ class Scrapper:
             js = get_json( url , i )
             for item in js['items']:
                 date_time = datetime.datetime.strptime ( item[ 'publication' ] , "%Y-%m-%dT%H:%M:%S.%fZ")
-                if date_time >= datetime.datetime.now() - datetime.timedelta(days=10) :                                                                                                                  #verifica se a publicação tem mais de um dia
+                if date_time >= datetime.datetime.now() - datetime.timedelta(days=3) :                                                                                                                  #verifica se a publicação tem mais de um dia
                     title = item["content"]['title']
                     description = item["content"]['summary']
                     img_url = item["content"]['image']['sizes']['L']['url']
@@ -118,6 +121,51 @@ class Scrapper:
                 else:
                     if cont_publicacao <= 0: return contents                                                                                                                                            #isso contorna o erro da primeira pagina 
                     else: cont_publicacao -= 1
+        return contents
+
+    @classmethod
+    def scrap_sanarmed(cls) -> dict:
+        url = 'https://www.sanarmed.com/coronavirus/fake-news'
+        contents = requests.get(url, headers=cls.HEADERS).text
+        soup = BeautifulSoup(contents, features='lxml')
+        contents = []
+        contents1 = []
+        i = 0
+
+        s = soup.find("div", {'class': 'styles__WrapperFeed-sc-1utrrzb-7'})
+        for child in s.findChildren('div', {'class': 'styles__WrapperTopo-sc-1utrrzb-5'}):
+            try:
+                date = child.find("span",{"type" : "Sub100"}).text.strip() + '/' \
+                       + child.find("span",{"type" : "p100"}).text.strip()
+                date_time = datetime.datetime.strptime(date, "%m/%d/%Y")
+                if date_time >= datetime.datetime.now() - datetime.timedelta(days=3):
+                    date_str = date_time.strftime("%d/%m/%Y")
+                    time_str = date_time.strftime("%Hh%M")
+                    #time_str = '-'
+                    date = datetime.datetime.strptime(date_str, "%d/%m/%Y")
+                    l = []
+                    l.insert(0, date_str)
+                    l.insert(1, time_str)
+                    l.insert(2, date)
+                    contents1.append(l)
+            except Exception as e:
+                Scrapper.build_log(e, "Sanarmed")
+        for child in s.findChildren('a', {'rel': 'noopener noreferrer'}):
+            try:
+                if contents1[i][2] >= datetime.datetime.now() - datetime.timedelta(days=3):
+                    title = child.find(class_='item-title').text.strip()
+                    description = child.find(class_='item-abstract').text.strip()
+                    img_url = child.find(class_='styles__ImgNews-sc-17s39zh-9 qlGGe')['src'].strip()
+                    news_url = child['href'].strip()
+                    author = '-'
+                    c = Scrapper.build_dict(title, description, img_url, news_url, contents1[i][0], contents1[i][1], contents1[i][2],
+                                   author, 'Sanarmed')
+                    contents.append(c)
+                    i += 1
+                    if (i > (len(contents1) - 1)):
+                        break
+            except Exception as e:
+                Scrapper.build_log(e, "Sanarmed")
         return contents
 
     @classmethod
@@ -138,7 +186,7 @@ class Scrapper:
                 date2 = Scrapper.monthInNumber(date1)
                 date2 = date2.replace(' ', '/').replace('/', ' ', 1)
                 date_time = datetime.datetime.strptime(date2, "%H:%M %d/%m/%Y")
-                if date_time >= datetime.datetime.now() - datetime.timedelta(days=40):
+                if date_time >= datetime.datetime.now() - datetime.timedelta(days=3):
                     title = child.find(class_='lx-stream-post__header-text gs-u-align-middle').text.strip()
                     description = child.find(class_='lx-stream-related-story--summary qa-story-summary').text.strip()
                     img_url = child.find(class_='qa-srcset-image lx-stream-related-story--index-image qa-story-image')[

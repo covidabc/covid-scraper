@@ -104,23 +104,27 @@ class Scrapper:
         contents = list()
         for i in range( 1 , 6 ):                                                                                                                                                                        #percorre até as últimas 5 páginas, isso para caso falhar coletar somente até as últimas 50 manchetes
             js = get_json( url , i )
-            for item in js['items']:
-                date_time = datetime.datetime.strptime ( item[ 'publication' ] , "%Y-%m-%dT%H:%M:%S.%fZ")
-                if date_time >= datetime.datetime.now() - datetime.timedelta(days=3) :                                                                                                                  #verifica se a publicação tem mais de um dia
-                    title = item["content"]['title']
-                    description = item["content"]['summary']
-                    img_url = item["content"]['image']['sizes']['L']['url']
-                    news_url = item["content"]['url']
-                    date_str = date_time.strftime("%d/%m/%Y")
-                    time_str = date_time.strftime("%Hh%M")
-                    date = datetime.datetime.strptime(date_str, "%d/%m/%Y")
-                    author = ''
 
-                    c = Scrapper.build_dict(title, description, img_url, news_url, date_str, time_str, date, author , 'g1')
-                    contents.append(c)
-                else:
-                    if cont_publicacao <= 0: return contents                                                                                                                                            #isso contorna o erro da primeira pagina 
-                    else: cont_publicacao -= 1
+            try:
+                for item in js['items']:
+                    date_time = datetime.datetime.strptime ( item[ 'publication' ] , "%Y-%m-%dT%H:%M:%S.%fZ")
+                    if date_time >= datetime.datetime.now() - datetime.timedelta(days=3) :                                                                                                                  #verifica se a publicação tem mais de um dia
+                        title = item["content"]['title']
+                        description = item["content"]['summary']
+                        img_url = item["content"]['image']['sizes']['L']['url']
+                        news_url = item["content"]['url']
+                        date_str = date_time.strftime("%d/%m/%Y")
+                        time_str = date_time.strftime("%Hh%M")
+                        date = datetime.datetime.strptime(date_str, "%d/%m/%Y")
+                        author = ''
+
+                        c = Scrapper.build_dict(title, description, img_url, news_url, date_str, time_str, date, author , 'g1')
+                        contents.append(c)
+                    else:
+                        if cont_publicacao <= 0: return contents                                                                                                                                            #isso contorna o erro da primeira pagina 
+                        else: cont_publicacao -= 1
+            except: 
+                pass
         return contents
 
     @classmethod
